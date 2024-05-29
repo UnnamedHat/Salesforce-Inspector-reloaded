@@ -1,7 +1,7 @@
 /* global React ReactDOM */
 import {sfConn, apiVersion, sessionError} from "./inspector.js";
 import {getAllFieldSetupLinks} from "./setup-links.js";
-import {setupLinks} from "./links.js";
+import {setupLinks} from "./links.mjs";
 
 let h = React.createElement;
 
@@ -80,10 +80,12 @@ class App extends React.PureComponent {
       limitsHref: "limits.html?" + hostArg,
       latestNotesViewed: localStorage.getItem("latestReleaseNotesVersionViewed") === this.props.addonVersion
     };
+    this.setupColorListeners();
     this.onContextUrlMessage = this.onContextUrlMessage.bind(this);
     this.onShortcutKey = this.onShortcutKey.bind(this);
     this.onChangeApi = this.onChangeApi.bind(this);
     this.onContextRecordChange = this.onContextRecordChange.bind(this);
+    this.setupColorListeners = this.setupColorListeners.bind(this);
     this.updateReleaseNotesViewed = this.updateReleaseNotesViewed.bind(this);
   }
   onContextRecordChange(e) {
@@ -183,6 +185,30 @@ class App extends React.PureComponent {
       });
     }
   }
+
+  setupColorListeners() {
+    const html = document.documentElement;
+
+    // listen to changes from the options page
+    window.addEventListener("storage", e => {
+      if (!e.isTrusted || (e.key !== "enableDarkMode" && e.key !== "enableAccentColors"))
+        return;
+
+      const isThemeKey = e.key === "enableDarkMode";
+      const newValueBool = e.newValue === "true";
+
+      const category = isThemeKey ? "theme" : "accent";
+      const value = isThemeKey ? (newValueBool ?  "dark" : "light") : (newValueBool ? "accent" : "default");
+      const htmlValue = html.dataset[category];
+
+      if (value != htmlValue) { // avoid recursion
+        html.dataset[category] = value;
+        parent.postMessage({category, value}, "*"); //update #insext (button.js)
+      }
+    });
+  }
+
+
   getBannerUrlAction(sessionError, sfHost, clientId, browser) {
     let url;
     let title;
@@ -194,6 +220,7 @@ class App extends React.PureComponent {
     url = `https://${sfHost}/services/oauth2/authorize?response_type=token&client_id=` + clientId + "&redirect_uri=" + browser + "-extension://" + chrome.i18n.getMessage("@@extension_id") + "/data-export.html";
     return {title, url, text};
   }
+
   render() {
     let {
       sfHost,
@@ -211,10 +238,9 @@ class App extends React.PureComponent {
     const DEFAULT_CLIENT_ID = "3MVG9HB6vm3GZZR9qrol39RJW_sZZjYV5CZXSWbkdi6dd74gTIUaEcanh7arx9BHhl35WhHW4AlNUY8HtG2hs"; //Consumer Key of  default connected app
     const clientId = localStorage.getItem(sfHost + "_clientId") ? localStorage.getItem(sfHost + "_clientId") : DEFAULT_CLIENT_ID;
     const bannerUrlAction = this.getBannerUrlAction(sessionError, sfHost, clientId, browser);
-    const popupTheme = localStorage.getItem("popupDarkTheme") == "true" ? " header-dark" : " header-light";
     return (
       h("div", {},
-        h("div", {className: "slds-page-header slds-theme_shade popup-header" + popupTheme},
+        h("div", {className: "slds-page-header slds-theme_shade popup-header"},
           h("div", {className: "slds-page-header__row"},
             h("div", {className: "slds-page-header__col-title"},
               h("div", {className: "slds-media"},
@@ -350,20 +376,22 @@ class App extends React.PureComponent {
               value: apiVersionInput.split(".0")[0]
             })
           ),
-          h("div", {className: "slds-col slds-size_4-of-12 slds-text-align_left"},
-            h("span", {className: "footer-small-text"}, navigator.userAgentData.platform.indexOf("mac") > -1 ? "[ctrl+option+i]" : "[ctrl+alt+i]" + " to open")
+          h("div", {className: "slds-col slds-size_3-of-12 slds-text-align_left slds-grid slds-grid_vertical slds-grid_vertical-align-center"},
+            h("span", {className: "footer-small-text"}, (navigator.userAgentData?.platform.indexOf("mac") > -1 || navigator.userAgent.indexOf("mac") > -1) ? "[ctrl+option+i]" : "[ctrl+alt+i]",
+              h("br")),
+            h("span", {className: "footer-small-text"}, "to open")
           ),
           h("div", {className: "slds-col slds-size_2-of-12 slds-text-align_right slds-icon_container slds-m-right_small", title: "Documentation"},
             h("a", {href: "https://tprouvot.github.io/Salesforce-Inspector-reloaded/", target: linkTarget},
-              h("svg", {className: "slds-button slds-icon_x-small slds-icon-text-default slds-m-top_xxx-small", viewBox: "0 0 52 52"},
-                h("use", {xlinkHref: "symbols.svg#info_alt", style: {fill: "#9c9c9c"}})
+              h("svg", {className: "slds-button slds-icon_x-small slds-icon-text-default slds-m-top_xxx-small popup-footer-icon", viewBox: "0 0 52 52"},
+                h("use", {xlinkHref: "symbols.svg#info_alt"}),
               )
             )
           ),
           h("div", {id: "optionsBtn", className: "slds-col slds-size_1-of-12 slds-text-align_right slds-icon_container slds-m-right_small", title: "Options"},
             h("a", {ref: "optionsBtn", href: "options.html?" + hostArg, target: linkTarget},
-              h("svg", {className: "slds-button slds-icon_x-small slds-icon-text-default slds-m-top_xxx-small", viewBox: "0 0 52 52"},
-                h("use", {xlinkHref: "symbols.svg#settings", style: {fill: "#9c9c9c"}})
+              h("svg", {className: "slds-button slds-icon_x-small slds-icon-text-default slds-m-top_xxx-small popup-footer-icon", viewBox: "0 0 52 52"},
+                h("use", {xlinkHref: "symbols.svg#settings"})
               )
             )
           ),
@@ -594,7 +622,7 @@ class AllDataBox extends React.PureComponent {
           h("li", {ref: "objectTab", onClick: this.onAspectClick, "data-aspect": this.SearchAspectTypes.sobject, className: (activeSearchAspect == this.SearchAspectTypes.sobject) ? "active" : ""}, h("span", {}, h("u", {}, "O"), "bjects")),
           h("li", {ref: "userTab", onClick: this.onAspectClick, "data-aspect": this.SearchAspectTypes.users, className: (activeSearchAspect == this.SearchAspectTypes.users) ? "active" : ""}, h("span", {}, h("u", {}, "U"), "sers")),
           h("li", {ref: "shortcutTab", onClick: this.onAspectClick, "data-aspect": this.SearchAspectTypes.shortcuts, className: (activeSearchAspect == this.SearchAspectTypes.shortcuts) ? "active" : ""}, h("span", {}, h("u", {}, "S"), "hortcuts")),
-          h("li", {ref: "orgTab", onClick: this.onAspectClick, "data-aspect": this.SearchAspectTypes.org, className: (activeSearchAspect == this.SearchAspectTypes.org) ? "active" : ""}, h("span", {}, "O", h("u", {}, "r"), "g"))
+          h("li", {ref: "orgTab", onClick: this.onAspectClick, "data-aspect": this.SearchAspectTypes.org, className: (activeSearchAspect == this.SearchAspectTypes.org) ? "active" : ""}, h("span", {}, "O", h("u", {}, "r"), "g")),
         ),
         (activeSearchAspect == this.SearchAspectTypes.sobject)
           ? h(AllDataBoxSObject, {ref: "showAllDataBoxSObject", sfHost, showDetailsSupported, sobjectsList, sobjectsLoading, contextRecordId, contextSobject, linkTarget, onContextRecordChange, isFieldsPresent})

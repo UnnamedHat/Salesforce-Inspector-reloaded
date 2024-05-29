@@ -28,7 +28,7 @@ function initButton(sfHost, inInspector) {
   document.body.appendChild(rootEl);
 
   addFlowScrollability();
-
+  setupColorChange();
 
   function addFlowScrollability(popupEl) {
     const currentUrl = window.location.href;
@@ -169,6 +169,16 @@ function initButton(sfHost, inInspector) {
           document.querySelectorAll("." + apiNamesClass).forEach(e => e.remove());
         }
       }
+      if (e.data.category && e.data.value) {
+        const category = e.data.category;
+        const value = e.data.value;
+        //rootEl is #insext
+        const insextValue = rootEl.dataset[category];
+
+        if (insextValue == null || value != insextValue) {
+            rootEl.dataset[category] = value;
+        }
+      }
     });
     rootEl.appendChild(popupEl);
     // Function to handle copy action
@@ -228,4 +238,22 @@ function initButton(sfHost, inInspector) {
     }
   }
 
+  function setupColorChange(error = 0) {
+    const storage = window[0].localStorage;
+    console.log({error});
+    if (error > 5) {
+      return console.error("Didn't find Inspector's storage");
+    }
+    if (!window[0].location.pathname.endsWith("popup.html")) {
+      return setTimeout(() => setupColorChange(error += 1), 500);
+    }
+
+    const savedTheme = storage.getItem("enableDarkMode");
+    const themeValue = savedTheme === "true" ? "dark" : "light";
+    rootEl.dataset.theme = themeValue; //rootEl is #insext
+
+    const savedAccent = storage.getItem("enableAccentColors");
+    const accentValue = savedAccent === "true" ? "accent" : "default";
+    rootEl.dataset.accent = accentValue; //rootEl is #insext
+  }
 }

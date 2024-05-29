@@ -252,6 +252,31 @@ function csvSerialize(table, separator) {
 let h = React.createElement;
 
 class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.setupColorListeners();
+  }
+
+  setupColorListeners() {
+    const html = document.documentElement;
+
+    // listen to changes from the options page
+    window.addEventListener("storage", e => {
+      if (!e.isTrusted || (e.key !== "enableDarkMode" && e.key !== "enableAccentColors"))
+        return;
+
+      const isThemeKey = e.key === "enableDarkMode";
+      const newValueBool = e.newValue === "true";
+
+      const category = isThemeKey ? "theme" : "accent";
+      const value = isThemeKey ? (newValueBool ?  "dark" : "light") : (newValueBool ? "accent" : "default");
+      const htmlValue = html.dataset[category];
+
+      if (value != htmlValue) { // avoid recursion
+        html.dataset[category] = value;
+      }
+    });
+  }
 
   render() {
     let {model} = this.props;
@@ -325,11 +350,12 @@ class App extends React.Component {
             )
           ),
           h("a", {href: "https://www.salesforce.com/us/developer/docs/api_rest/", target: "_blank"}, "REST API documentation"),
-          " Open your browser's ",
-          h("b", {}, "F12 Developer Tools"),
-          " and select the ",
-          h("b", {}, "Console"),
-          " tab to make your own API calls."
+          h("span", {},
+            " Open your browser's ",
+            h("b", {}, "F12 Developer Tools"),
+            " and select the ",
+            h("b", {}, "Console"),
+            " tab to make your own API calls.")
         ),
       )
     );

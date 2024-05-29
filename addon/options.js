@@ -80,7 +80,6 @@ class OptionsTabSelector extends React.Component {
           {option: Option, props: {type: "toggle", title: "Open Permission Set / Permission Set Group summary from shortcuts", key: "enablePermSetSummary"}},
           {option: Option, props: {type: "toggle", title: "Search metadata from Shortcut tab", key: "metadataShortcutSearch"}},
           {option: Option, props: {type: "toggle", title: "Disable query input autofocus", key: "disableQueryInputAutoFocus"}},
-          {option: Option, props: {type: "toggle", title: "Popup Dark theme", key: "popupDarkTheme"}},
           {option: Option, props: {type: "toggle", title: "Show 'Generate Access Token' button", key: "popupGenerateTokenButton", default: true}},
           {option: Option, props: {type: "text", title: "Custom favicon (org specific)", key: this.sfHost + "_customFavicon", placeholder: "Available values : green, orange, pink, purple, red, yellow"}}
         ]
@@ -122,6 +121,15 @@ class OptionsTabSelector extends React.Component {
         title: "Enable Logs",
         content: [
           {option: enableLogsOption, props: {key: 1}}
+        ]
+      },
+      {
+        id: 6,
+        tabTitle: "Tab6",
+        title: "User Interface",
+        content: [
+          {option: Option, props: {type: "toggle", title: "Enable Dark Mode", storageKey: "enableDarkMode", default: false}},
+          {option: Option, props: {type: "toggle", title: "Enable Accent colors", storageKey: "enableAccentColors", default: false}},
         ]
       }
     ];
@@ -305,10 +313,25 @@ class Option extends React.Component {
     this.title = props.title;
   }
 
+  // change Theme or Accent
+  updateUI(key, enabled){
+    if (key !== "enableDarkMode" && key !== "enableAccentColors") {
+      return;
+    }
+
+    const isThemeKey = key === "enableDarkMode";
+
+    const category = isThemeKey ? "theme" : "accent";
+    const value = isThemeKey ? (enabled ? "dark" : "light") : (enabled ? "accent" : "default");
+    const html = document.documentElement;
+    html.dataset[category] = value;
+  }
+
   onChangeToggle(e) {
     const enabled = e.target.checked;
     this.setState({[this.key]: enabled});
     localStorage.setItem(this.key, JSON.stringify(enabled));
+    this.updateUI(this.key, enabled);
   }
 
   onChange(e) {
@@ -459,12 +482,6 @@ class enableLogsOption extends React.Component {
 let h = React.createElement;
 
 class App extends React.Component {
-
-  constructor(props) {
-    super(props);
-    this.foo = undefined;
-  }
-
   render() {
     let {model} = this.props;
     return h("div", {},

@@ -242,6 +242,7 @@ The customization is linked to the org, it means you can have different colors f
 
 <img width="901" alt="image" src="https://github.com/tprouvot/Salesforce-Inspector-reloaded/assets/35368290/1bbd9cc8-2425-4e79-8a92-a4e954f3d369">
 
+<<<<<<< HEAD
 ## Select all fields in a query
 
 This functionality already exists in the legacy version but since many users don't know about it, I would like to document it.
@@ -249,3 +250,41 @@ When on the export page, put the cursor between `SaELECT` and `FROM` and press `
 If you want to insert only custom fields, enter `__c` between `SELECT` and `FROM`.
 
 ![2024-04-16_08-53-32 (1)](https://github.com/tprouvot/Salesforce-Inspector-reloaded/assets/35368290/ef7ba7a0-c9c4-4573-9aaa-b72e64430f64)
+=======
+## Change Color Scheme
+There are two ways to set your preferred color scheme.
+
+### From the popup
+Be sure to have the popup open (click on the arrow to invoke it).
+#### Change to light theme
+Click on the Sun at the bottom of the popup to change the color scheme to light.
+
+![Change to light from the popup](./screenshots/color-scheme/popup-to-light.png)
+#### Change to dark theme
+Click on the Moon at the bottom of the popup to change the color scheme to dark.
+
+![Change to dark from the popup](./screenshots/color-scheme/popup-to-dark.png)
+
+### From the options page
+Navigate to the options page (open the popup > scroll down to "Options" > click on the "User Interface" tab)
+#### Change to light theme
+Deactivate the toggle corresponding to "Set default theme to".
+
+![Change to light from the options page](./screenshots/color-scheme/options-to-light.png)
+#### Change to dark theme
+Activate the toggle corresponding to "Set default theme to".
+
+![Change to dark from the options page](./screenshots/color-scheme/options-to-dark.png)
+
+## Change Accent of Theme
+You may change the accent of your preferred theme from the options page.
+The default accent is true-color and has great contrast, the other one is easier on the eyes.
+
+![Default light theme](./screenshots/accent-scheme/light-default.png)
+
+![Accent light theme](./screenshots/accent-scheme/light-accent.png)
+j
+![Default dark theme](./screenshots/accent-scheme/dark-default.png)
+
+![Accent dark theme](./screenshots/accent-scheme/dark-accent.png)
+>>>>>>> pr-309
